@@ -1,0 +1,38 @@
+﻿{
+  "code": "paintingrenderer",
+  "blockmaterial": "Stone",
+  "drawtype": "json",
+  "shape": {
+    "base": "jopainting:paintingrender",
+    "rotateYByType": {
+      "*-north": 270,
+      "*-east": 180,
+      "*-south": 90,
+      "*-west": 0,
+      "*": 0
+    },
+    "rotateZByType": {
+      "*-up": -90,
+      "*-down": 90,
+      "*": 0
+    }
+  },
+  "variantgroups": [
+    {
+      "code": "position",
+      "states": [ "up", "down" ],
+      "loadFromProperties": "abstract/horizontalorientation"
+    }
+  ],
+  "resistance": 3.5,
+  "sounds": {
+    "place": "game:block/anvil",
+    "walk": "game:walk/stone"
+  },
+  "sidesolid": {
+    "all": "false"
+  },
+  "sideopaque": {
+    "all": "false"
+  }
+}

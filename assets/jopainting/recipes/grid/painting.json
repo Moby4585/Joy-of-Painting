@@ -1,0 +1,70 @@
+﻿[
+  {
+    "ingredientPattern": "CSC,SLS,CSC",
+    "width": 3,
+    "height": 3,
+    "ingredients": {
+      "L": {
+        "type": "block",
+        "code": "game:linen-*",
+        "quantity": 1
+      },
+      "S": {
+        "type": "item",
+        "code": "game:plank-*"
+      },
+      "C": {
+        "type": "block",
+        "code": "game:woodbucket"
+      }
+    },
+    "attributes": {
+      "liquidContainerProps": {
+        "requiresContent": {
+          "type": "item",
+          "code": "game:dye-*"
+        },
+        "requiresLitres": 0.5
+      }
+    },
+    "output": {
+      "type": "block",
+      "code": "jopainting:painting-north",
+      "quantity": 1
+    }
+  },
+  {
+    "ingredientPattern": "CSC,SLS,CSC",
+    "width": 3,
+    "height": 3,
+    "ingredients": {
+      "L": {
+        "type": "block",
+        "code": "game:linen-*",
+        "quantity": 1
+      },
+      "S": {
+        "type": "item",
+        "code": "game:plank-*"
+      },
+      "C": {
+        "type": "block",
+        "code": "game:bowl-fired"
+      }
+    },
+    "attributes": {
+      "liquidContainerProps": {
+        "requiresContent": {
+          "type": "item",
+          "code": "game:dye-*"
+        },
+        "requiresLitres": 0.5
+      }
+    },
+    "output": {
+      "type": "block",
+      "code": "jopainting:painting-north",
+      "quantity": 1
+    }
+  }
+]

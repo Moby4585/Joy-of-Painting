@@ -1,0 +1,160 @@
+﻿using System.Collections.Generic;
+using Vintagestory.API;
+using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
+
+namespace jopainting
+{
+    public class BlockBehaviorPaintingAttachable : BlockBehavior
+    {
+        public string facingCode = "orientation";
+        public string defaultDrop = "north";
+        Dictionary<string, Cuboidi> attachmentAreas;
+
+        public BlockBehaviorPaintingAttachable(Block block) : base(block)
+        {
+        }
+
+        public override void Initialize(JsonObject properties)
+        {
+            base.Initialize(properties);
+
+            facingCode = properties["facingCode"].AsString("orientation");
+            defaultDrop = properties["defaultDrop"].AsString("north");
+
+            var areas = properties["attachmentAreas"].AsObject<Dictionary<string, RotatableCube>>(null);
+            if (areas != null)
+            {
+                attachmentAreas = new Dictionary<string, Cuboidi>();
+                foreach (var val in areas)
+                {
+                    val.Value.Origin.Set(8, 8, 8);
+                    attachmentAreas[val.Key] = val.Value.RotatedCopy().ConvertToCuboidi();
+                }
+            }
+        }
+
+        public override bool TryPlaceBlock(IWorldAccessor world, IPlayer byPlayer, ItemStack itemstack, BlockSelection blockSel, ref EnumHandling handling, ref string failureCode)
+        {
+            handling = EnumHandling.PreventDefault;
+
+            // Prefer selected block face
+            if (TryAttachTo(world, byPlayer, blockSel.Position, blockSel.HitPosition, blockSel.Face, itemstack)) return true;
+
+
+            // Otherwise attach to any possible face
+            BlockFacing[] faces = BlockFacing.ALLFACES;
+            for (int i = 0; i < faces.Length; i++)
+            {
+                //if (faces[i] == BlockFacing.DOWN) continue; - what for? o.O
+
+                if (TryAttachTo(world, byPlayer, blockSel.Position, blockSel.HitPosition, faces[i], itemstack)) return true;
+            }
+
+            failureCode = "requireattachable";
+
+            return false;
+        }
+
+
+        public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, ref float dropQuantityMultiplier, ref EnumHandling handled)
+        {
+            handled = EnumHandling.PreventDefault;
+
+            Block droppedblock = world.BlockAccessor.GetBlock(block.CodeWithVariant(facingCode, defaultDrop));
+            return new ItemStack[] { new ItemStack(droppedblock) };
+        }
+
+        public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos, ref EnumHandling handled)
+        {
+            handled = EnumHandling.PreventDefault;
+
+            Block pickedblock = world.BlockAccessor.GetBlock(block.CodeWithVariant(facingCode, defaultDrop));
+            return new ItemStack(pickedblock);
+        }
+
+
+        public override void OnNeighbourBlockChange(IWorldAccessor world, BlockPos pos, BlockPos neibpos, ref EnumHandling handled)
+        {
+            handled = EnumHandling.PreventDefault;
+
+            if (!CanStay(world, pos))
+            {
+                world.BlockAccessor.BreakBlock(pos, null);
+            }
+        }
+
+        bool TryAttachTo(IWorldAccessor world, IPlayer byPlayer, BlockPos blockpos, Vec3d hitPosition, BlockFacing onBlockFace, ItemStack itemstack)
+        {
+            BlockPos attachingBlockPos = blockpos.AddCopy(onBlockFace.Opposite);
+            Block attachingBlock = world.BlockAccessor.GetBlock(world.BlockAccessor.GetBlockId(attachingBlockPos));
+
+            BlockFacing onFace = onBlockFace;
+
+            Block hereBlock = world.BlockAccessor.GetBlock(blockpos);
+
+            Cuboidi attachmentArea = null;
+            attachmentAreas?.TryGetValue(onBlockFace.Code, out attachmentArea);
+
+            if (hereBlock.Replaceable >= 6000 && attachingBlock.CanAttachBlockAt(world.BlockAccessor, block, attachingBlockPos, onFace, attachmentArea))
+            {
+                Block orientedBlock = world.BlockAccessor.GetBlock(block.CodeWithVariant(facingCode, onBlockFace.Code));
+                orientedBlock.DoPlaceBlock(world, byPlayer, new BlockSelection() { Position = blockpos, HitPosition = hitPosition, Face = onFace }, itemstack);
+                return true;
+            }
+
+            return false;
+        }
+
+        bool CanStay(IWorldAccessor world, BlockPos pos)
+        {
+            BlockFacing facing = BlockFacing.FromCode(block.Variant[facingCode]);
+            BlockPos attachingBlockPos = pos.AddCopy(facing.Opposite);
+            Block attachedblock = world.BlockAccessor.GetBlock(world.BlockAccessor.GetBlockId(attachingBlockPos));
+
+            BlockFacing onFace = facing;
+
+            Cuboidi attachmentArea = null;
+            attachmentAreas?.TryGetValue(facing.Code, out attachmentArea);
+
+            return attachedblock.CanAttachBlockAt(world.BlockAccessor, block, attachingBlockPos, onFace, attachmentArea);
+        }
+
+        public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, ref EnumHandling handled, Cuboidi attachmentArea = null)
+        {
+            handled = EnumHandling.PreventDefault;
+
+            return false;
+        }
+
+        public override AssetLocation GetRotatedBlockCode(int angle, ref EnumHandling handled)
+        {
+            handled = EnumHandling.PreventDefault;
+
+            if (block.Variant[facingCode] == "up" || block.Variant[facingCode] == "down") return block.Code;
+
+            BlockFacing newFacing = BlockFacing.HORIZONTALS_ANGLEORDER[((360 - angle) / 90 + BlockFacing.FromCode(block.Variant[facingCode]).HorizontalAngleIndex) % 4];
+            return block.CodeWithParts(newFacing.Code);
+        }
+
+        public override AssetLocation GetVerticallyFlippedBlockCode(ref EnumHandling handling)
+        {
+            handling = EnumHandling.PreventDefault;
+
+            return block.Variant[facingCode] == "up" ? block.CodeWithVariant(facingCode, "down") : block.CodeWithVariant(facingCode, "up");
+        }
+
+        public override AssetLocation GetHorizontallyFlippedBlockCode(EnumAxis axis, ref EnumHandling handling)
+        {
+            handling = EnumHandling.PreventDefault;
+
+            BlockFacing facing = BlockFacing.FromCode(block.Variant[facingCode]);
+            if (facing.Axis == axis)
+            {
+                return block.CodeWithVariant(facingCode, facing.Opposite.Code);
+            }
+            return block.Code;
+        }
+    }
+}
