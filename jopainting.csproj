@@ -4,6 +4,7 @@
         <LangVersion>11</LangVersion>
 	</PropertyGroup>
     <ItemGroup>
+        <Reference Include="System.Windows.Forms"/>
         <Reference Include="Vintagestory">
             <HintPath>$(VINTAGE_STORY)\Vintagestory.exe</HintPath>
             <Private>false</Private>

@@ -20,6 +20,7 @@ using OpenTK.Graphics.OpenGL;
 using System.Drawing.Imaging;
 using OpenTK.Graphics;
 using ProtoBuf;
+using System.Windows.Forms;
 
 namespace jopainting
 {
@@ -94,17 +95,61 @@ namespace jopainting
             player.InventoryManager.ActiveHotbarSlot.MarkDirty();
         }
 
-        public static Bitmap LoadBmp(string bitmapName)
+        public static Bitmap LoadBmpFromFile(string fileName)
         {
-            //return (Bitmap)Bitmap.FromFile(api.GetOrCreateDataPath("paintings") + "/moby.bmp");
-            if (File.Exists(api.GetOrCreateDataPath("Paintings") + "/" + bitmapName + ".bmp"))
+            List<string> formats = new()
             {
-                return (Bitmap)Bitmap.FromFile(api.GetOrCreateDataPath("Paintings") + "/" + bitmapName + ".bmp");
-            }
-            else
+                ".bmp",
+                ".gif",
+                ".ico",
+                ".jpeg",
+                ".jpg",
+                ".png",
+                ".tiff",
+                // ".emf",
+                // ".exif",
+                // ".wmf"
+            };
+
+            foreach (var format in formats)
             {
-                return new Bitmap(1, 1);
+                if (File.Exists($"{api.GetOrCreateDataPath("Paintings")}/{fileName}" + format))
+                {
+                    return (Bitmap)Image.FromFile($"{api.GetOrCreateDataPath("Paintings")}/{fileName}" + format);
+                }
             }
+            return new(1, 1);
+        }
+
+        public static Bitmap LoadBmpFromUrl(string url)
+        {
+            try
+            {
+                PictureBox picbox = new();
+                picbox.Load(url);
+
+                if (picbox?.Width == 1)
+                {
+                    return new(1, 1);
+                }
+
+                return (Bitmap)picbox.Image;
+            }
+            catch (Exception)
+            {
+                return new(1, 1);
+            }
+        }
+
+        public static Bitmap LoadBmpFromClipboard()
+        {
+            var img = Clipboard.GetImage();
+
+            if (img?.Width == 1)
+            {
+                return new(1, 1);
+            }
+            return (Bitmap)img;
         }
     }
     [ProtoContract]
