@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -39,7 +39,7 @@ namespace jopainting
 
             var parsers = api.ChatCommands.Parsers;
             api.ChatCommands.Create("loadpainting")
-                .WithArgs(parsers.Word("file"))
+                .WithArgs(parsers.All("file"))
                 .HandleWith(LoadPainting);
         }
 
