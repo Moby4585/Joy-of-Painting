@@ -1,4 +1,4 @@
-using Vintagestory.API.Common;
+﻿using Vintagestory.API.Common;
 
 [assembly: ModInfo("Joy of Painting")]
 
