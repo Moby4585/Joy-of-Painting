@@ -42,7 +42,6 @@ namespace jopainting
             // Prefer selected block face
             if (TryAttachTo(world, byPlayer, blockSel.Position, blockSel.HitPosition, blockSel.Face, itemstack)) return true;
 
-
             // Otherwise attach to any possible face
             BlockFacing[] faces = BlockFacing.ALLFACES;
             for (int i = 0; i < faces.Length; i++)
@@ -56,7 +55,6 @@ namespace jopainting
 
             return false;
         }
-
 
         public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, ref float dropQuantityMultiplier, ref EnumHandling handled)
         {
@@ -73,7 +71,6 @@ namespace jopainting
             Block pickedblock = world.BlockAccessor.GetBlock(block.CodeWithVariant(facingCode, defaultDrop));
             return new ItemStack(pickedblock);
         }
-
 
         public override void OnNeighbourBlockChange(IWorldAccessor world, BlockPos pos, BlockPos neibpos, ref EnumHandling handled)
         {
@@ -134,7 +131,7 @@ namespace jopainting
 
             if (block.Variant[facingCode] == "up" || block.Variant[facingCode] == "down") return block.Code;
 
-            BlockFacing newFacing = BlockFacing.HORIZONTALS_ANGLEORDER[((360 - angle) / 90 + BlockFacing.FromCode(block.Variant[facingCode]).HorizontalAngleIndex) % 4];
+            BlockFacing newFacing = BlockFacing.HORIZONTALS_ANGLEORDER[(((360 - angle) / 90) + BlockFacing.FromCode(block.Variant[facingCode]).HorizontalAngleIndex) % 4];
             return block.CodeWithParts(newFacing.Code);
         }
 

@@ -49,22 +49,21 @@ namespace jopainting
             {
                 return TextCommandResult.Error("Error: you have to be holding a painting (from Joy of Painting, not vanilla) to use this command");
             }
-            if (args.Caller.Player.InventoryManager.ActiveHotbarSlot.Itemstack.ItemAttributes.IsTrue("isPainting") != true)
+            if (!args.Caller.Player.InventoryManager.ActiveHotbarSlot.Itemstack.ItemAttributes.IsTrue("isPainting"))
             {
                 return TextCommandResult.Error("Error: you have to be holding a painting (from Joy of Painting, not vanilla) to use this command");
             }
 
-
-            PaintingBitmap bitmap = new PaintingBitmap();
-            Bitmap bmp = ModSystemPainting.loadBmp(args[0].ToString());
+            PaintingBitmap bitmap = new();
+            Bitmap bmp = ModSystemPainting.LoadBmp(args[0].ToString());
 
             if (bmp.Width == 1) return TextCommandResult.Error("Error: File \"" + args[0].ToString() + ".bmp\" not found in VintagestoryData/Paintings folder");
 
             bmp = new Bitmap(bmp, new Size(32, 32));
 
-            bitmap.setBitmap(bmp);
+            bitmap.SetBitmap(bmp);
 
-            paintingModSys.savePainting(args.Caller.Player, bitmap.pixelsRed, bitmap.pixelsGreen, bitmap.pixelsBlue, bitmap.Width, bitmap.Height, args[0].ToString());
+            paintingModSys.SavePainting(args.Caller.Player, bitmap.pixelsRed, bitmap.pixelsGreen, bitmap.pixelsBlue, bitmap.Width, bitmap.Height, args[0].ToString());
 
             return TextCommandResult.Success("Requested loading \"" + args[0] + "\"");
         }

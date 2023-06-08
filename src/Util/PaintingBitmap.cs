@@ -40,21 +40,17 @@ namespace jopainting
             bitmapRed = new Bitmap(width, height);
             bitmapGreen = new Bitmap(width, height);
             bitmapBlue = new Bitmap(width, height);
-            
+
             pixelsRed = new byte[width * height];
             pixelsGreen = new byte[width * height];
             pixelsBlue = new byte[width * height];
-
-
         }
 
         public Color GetPixel(int x, int y)
         {
-            
             return Color.FromArgb(bitmapRed.GetPixel(Math.Min(x, bitmapRed.Width - 1), Math.Min(y, bitmapRed.Height - 1)).R * (byte)2,
                 bitmapGreen.GetPixel(Math.Min(x, bitmapGreen.Width - 1), Math.Min(y, bitmapGreen.Height - 1)).G * (byte)2,
                 bitmapBlue.GetPixel(Math.Min(x, bitmapBlue.Width - 1), Math.Min(y, bitmapBlue.Height - 1)).B * (byte)2);
-
         }
 
         public Color GetPixelRel(float x, float y)
@@ -69,7 +65,7 @@ namespace jopainting
 
         int[] GetBitmapAsInts()
         {
-            List<int> pixels = new List<int>();
+            List<int> pixels = new();
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -81,7 +77,7 @@ namespace jopainting
             return pixels.ToArray();
         }
 
-        public void setBitmapRGB(Bitmap bmpR, Bitmap bmpG, Bitmap bmpB)
+        public void SetBitmapRGB(Bitmap bmpR, Bitmap bmpG, Bitmap bmpB)
         {
             width = bmpR.Width;
             height = bmpR.Height;
@@ -91,9 +87,9 @@ namespace jopainting
             bool isHeightEdge = height <= width;
             int deadshift = (longEdge - edge) / 2;
 
-            List<byte> pixelsByteR = new List<byte>();
-            List<byte> pixelsByteG = new List<byte>();
-            List<byte> pixelsByteB = new List<byte>();
+            List<byte> pixelsByteR = new();
+            List<byte> pixelsByteG = new();
+            List<byte> pixelsByteB = new();
 
             if (isHeightEdge)
             {
@@ -120,7 +116,7 @@ namespace jopainting
             bitmapBlue = BitmapUtil.GrayscaleBitmapFromPixels(pixelsBlue, width, height);
         }
 
-        public void setBitmap(Bitmap bmp)
+        public void SetBitmap(Bitmap bmp)
         {
             width = bmp.Width;
             height = bmp.Height;
@@ -130,9 +126,9 @@ namespace jopainting
             bool isHeightEdge = height <= width;
             int deadshift = (longEdge - edge) / 2;
 
-            List<byte> pixelsByteR = new List<byte>();
-            List<byte> pixelsByteG = new List<byte>();
-            List<byte> pixelsByteB = new List<byte>();
+            List<byte> pixelsByteR = new();
+            List<byte> pixelsByteG = new();
+            List<byte> pixelsByteB = new();
 
             if (isHeightEdge)
             {

@@ -27,7 +27,7 @@ namespace jopainting
     {
         public static ICoreAPI api;
 
-        public Dictionary<string, TextureAtlasPosition> atlasPositions = new Dictionary<string, TextureAtlasPosition>();
+        public Dictionary<string, TextureAtlasPosition> atlasPositions = new();
 
         public override double ExecuteOrder()
         {
@@ -41,19 +41,11 @@ namespace jopainting
             api.Network.RegisterChannel("savepainting").RegisterMessageType<SavePaintingPacket>();
         }
 
-        public override void StartClientSide(ICoreClientAPI api)
-        {
-            base.StartClientSide(api);
-        }
-
         public TextureAtlasPosition GetAtlasPosition(PaintingBitmap painting, ICoreClientAPI capi, string picture)
         {
             if (atlasPositions.ContainsKey(picture)) return atlasPositions[picture];
 
-            TextureAtlasPosition atlasPosition;
-            int texSubId;
-
-            capi.BlockTextureAtlas.InsertTexture(painting, out texSubId, out atlasPosition);
+            capi.BlockTextureAtlas.InsertTexture(painting, out int texSubId, out TextureAtlasPosition atlasPosition);
 
             atlasPositions.Add(picture, atlasPosition);
 
@@ -62,10 +54,10 @@ namespace jopainting
 
         public override void StartServerSide(ICoreServerAPI api)
         {
-            api.Network.GetChannel("savepainting").SetMessageHandler<SavePaintingPacket>(onSavePaintingPacket);
+            api.Network.GetChannel("savepainting").SetMessageHandler<SavePaintingPacket>(OnSavePaintingPacket);
         }
 
-        public void savePainting(IPlayer player, byte[] paintingR, byte[] paintingG, byte[] paintingB, int width, int height, string name)
+        public void SavePainting(IPlayer player, byte[] paintingR, byte[] paintingG, byte[] paintingB, int width, int height, string name)
         {
             //photographStack = new ItemStack(api.World.GetItem(new AssetLocation("kosphotography", "photograph")));
 
@@ -85,7 +77,7 @@ namespace jopainting
             //player.InventoryManager.ActiveHotbarSlot.MarkDirty();
         }
 
-        public void onSavePaintingPacket(IServerPlayer player, SavePaintingPacket packet)
+        public void OnSavePaintingPacket(IServerPlayer player, SavePaintingPacket packet)
         {
             //player.SendMessage(0, "Packet received", EnumChatType.Notification);
             //savePainting(player, packet.PaintingR, packet.PaintingG, packet.PaintingB, packet.Width, packet.Height);
@@ -102,7 +94,7 @@ namespace jopainting
             player.InventoryManager.ActiveHotbarSlot.MarkDirty();
         }
 
-        public static Bitmap loadBmp(string bitmapName)
+        public static Bitmap LoadBmp(string bitmapName)
         {
             //return (Bitmap)Bitmap.FromFile(api.GetOrCreateDataPath("paintings") + "/moby.bmp");
             if (File.Exists(api.GetOrCreateDataPath("Paintings") + "/" + bitmapName + ".bmp"))

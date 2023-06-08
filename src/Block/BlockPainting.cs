@@ -21,9 +21,9 @@ namespace jopainting
 
         //public AssetLocation bubbleSound = new AssetLocation("game", "effect/bubbling");
 
-        Dictionary<int, MeshRef> meshrefs = new Dictionary<int, MeshRef>();
+        Dictionary<int, MeshRef> meshrefs = new();
 
-        protected virtual string meshRefsCacheKey => Code.ToShortString() + "meshRefs";
+        protected virtual string MeshRefsCacheKey => Code.ToShortString() + "meshRefs";
         static ModSystemPainting paintingModSys;
 
         public int CurrentMeshRefid => GetHashCode();
@@ -32,9 +32,7 @@ namespace jopainting
         {
             ItemStack[] droppedItemstack = base.GetDrops(world, pos, byPlayer, dropChanceMultiplier);
             if (droppedItemstack == null) return droppedItemstack;
-            BlockEntityPainting bep = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityPainting;
-
-            if (bep == null) return droppedItemstack;
+            if (world.BlockAccessor.GetBlockEntity(pos) is not BlockEntityPainting bep) return droppedItemstack;
 
             foreach (ItemStack stack in droppedItemstack)
             {
@@ -60,9 +58,8 @@ namespace jopainting
             ItemStack pickedItemstack =  base.OnPickBlock(world, pos);
             if (pickedItemstack == null) return pickedItemstack;
             pickedItemstack = new ItemStack(world.GetBlock(pickedItemstack.Collectible.Code));
-            BlockEntityPainting bep = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityPainting;
             //return bep.fromStack;
-            if (bep != null)
+            if (world.BlockAccessor.GetBlockEntity(pos) is BlockEntityPainting bep)
             {
                 pickedItemstack.Attributes.SetInt("width", bep.width);
                 pickedItemstack.Attributes.SetInt("height", bep.height);
@@ -78,14 +75,13 @@ namespace jopainting
         {
             //Dictionary<int, MeshRef> meshrefs;
 
-            object obj;
-            if (capi.ObjectCache.TryGetValue(meshRefsCacheKey, out obj))
+            if (capi.ObjectCache.TryGetValue(MeshRefsCacheKey, out object obj))
             {
                 meshrefs = obj as Dictionary<int, MeshRef>;
             }
             else
             {
-                capi.ObjectCache[meshRefsCacheKey] = meshrefs = new Dictionary<int, MeshRef>();
+                capi.ObjectCache[MeshRefsCacheKey] = meshrefs = new Dictionary<int, MeshRef>();
             }
 
             var meshrefid = itemstack.TempAttributes.GetInt("meshRefId");
@@ -121,7 +117,7 @@ namespace jopainting
 
             MeshData containerMesh = origcontainermesh.Clone();
 
-            AssetLocation photoBlock = new AssetLocation((this.Attributes?["paintingshape"]?.AsString("jopainting:paintingrenderer") ?? "jopainting:paintingrenderer") + "-" + this.LastCodePart());
+            AssetLocation photoBlock = new((this.Attributes?["paintingshape"]?.AsString("jopainting:paintingrenderer") ?? "jopainting:paintingrenderer") + "-" + this.LastCodePart());
 
             Block block = capi.World.GetBlock(photoBlock);
             if (block == null) return containerMesh;
@@ -133,14 +129,13 @@ namespace jopainting
             int width = itemstack.Attributes.GetInt("width", 0);
             int height = itemstack.Attributes.GetInt("height", 0);
 
-            if (paintingR == "" || paintingG == "" || paintingB == "") return containerMesh;
-
+            if (paintingR?.Length == 0 || paintingG?.Length == 0 || paintingB?.Length == 0) return containerMesh;
 
             Bitmap bmpR = BitmapUtil.GrayscaleBitmapFromPixels(Encoding.GetEncoding(28591).GetBytes(paintingR), width, height);
             Bitmap bmpG = BitmapUtil.GrayscaleBitmapFromPixels(Encoding.GetEncoding(28591).GetBytes(paintingG), width, height);
             Bitmap bmpB = BitmapUtil.GrayscaleBitmapFromPixels(Encoding.GetEncoding(28591).GetBytes(paintingB), width, height);
 
-            PaintingBitmap bitmap = new PaintingBitmap();
+            PaintingBitmap bitmap = new();
 
             //var graphics = Graphics.FromImage(bmp);
             //graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
@@ -151,7 +146,7 @@ namespace jopainting
             bmpG = new Bitmap(bmpG, new Size(32, 32));
             bmpB = new Bitmap(bmpB, new Size(32, 32));
 
-            bitmap.setBitmapRGB(bmpR, bmpG, bmpB);
+            bitmap.SetBitmapRGB(bmpR, bmpG, bmpB);
 
             TextureAtlasPosition atlasPosition = paintingModSys.GetAtlasPosition(bitmap, capi, paintingR + paintingG + paintingB);
 
@@ -202,7 +197,7 @@ namespace jopainting
 
         public string GetMeshCacheKey(ItemStack itemstack)
         {
-            string s = meshRefsCacheKey;
+            string s = MeshRefsCacheKey;
             return s;
         }
 

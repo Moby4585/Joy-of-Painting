@@ -38,7 +38,7 @@ namespace jopainting
 
         bool wasJustPlaced = false;
 
-        public AssetLocation photoBlock = new AssetLocation("jopainting", "paintingrenderer");
+        public AssetLocation photoBlock = new("jopainting", "paintingrenderer");
         MeshData photoMesh;
 
         // Attributes
@@ -57,7 +57,6 @@ namespace jopainting
         {
             base.Initialize(api);
 
-
             RegisterGameTickListener(OnGameTick, 5);
 
             //apparatusComposition = GetApparatusComposition();
@@ -65,8 +64,7 @@ namespace jopainting
 
             photoBlock = new AssetLocation((Block.Attributes?["paintingshape"]?.AsString("jopainting:paintingrenderer") ?? "jopainting:paintingrenderer") + "-" + Block.LastCodePart());
 
-
-            genPhoto();
+            GenPhoto();
             //((BlockPainting)this.Block).be = this;
             //((BlockPainting)this.Block).setValues();
             MarkDirty(true);
@@ -86,18 +84,10 @@ namespace jopainting
 
         public void OnGameTick(float dt)
         {
-
-        }
-
-        public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
-        {
-
-            base.GetBlockInfo(forPlayer, dsc);
         }
 
         public bool OnInteract(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, bool onlyOilLamp = false)
         {
-
             MarkDirty(true);
 
             return false;
@@ -121,7 +111,7 @@ namespace jopainting
 
                 base.OnBlockPlaced(byItemStack);
 
-                genPhoto();
+                GenPhoto();
             }
 
             wasJustPlaced = true;
@@ -139,7 +129,7 @@ namespace jopainting
 
             base.OnBlockPlaced(byItemStack);
 
-            genPhoto();
+            GenPhoto();
         }
 
         public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
@@ -166,7 +156,7 @@ namespace jopainting
             height = tree.GetInt("height", 0);
             name = tree.GetString("paintingname", "");
 
-            genPhoto();
+            GenPhoto();
             //fromStack = tree.GetItemstack("fromstack", null);
 
             //((BlockPainting)this.Block).be = this;
@@ -193,12 +183,12 @@ namespace jopainting
             base.ToTreeAttributes(tree);
         }
 
-        private void genPhoto()
+        private void GenPhoto()
         {
             if (Api == null) return;
             if (Api.Side != EnumAppSide.Client) return;
 
-            if (paintingR == "" || paintingG == "" || paintingB == "") return;
+            if (paintingR?.Length == 0 || paintingG?.Length == 0 || paintingB?.Length == 0) return;
 
             ICoreClientAPI capi = Api as ICoreClientAPI;
 
@@ -215,14 +205,14 @@ namespace jopainting
             bmpG = new Bitmap(bmpG, new Size(32, 32));
             bmpB = new Bitmap(bmpB, new Size(32, 32));
 
-            bitmap.setBitmapRGB(bmpR, bmpG, bmpB);
+            bitmap.SetBitmapRGB(bmpR, bmpG, bmpB);
 
             atlasPosition = paintingModSys.GetAtlasPosition(bitmap, capi, paintingR + paintingG + paintingB);
 
-            loadMesh();
+            LoadMesh();
         }
 
-        private void loadMesh()
+        private void LoadMesh()
         {
             if (Api.Side == EnumAppSide.Server) return;
 

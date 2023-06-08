@@ -15,9 +15,6 @@ namespace jopainting
             api.RegisterBlockClass("BlockPainting", typeof(BlockPainting));
             api.RegisterBlockEntityClass("BlockEntityPainting", typeof(BlockEntityPainting));
             api.RegisterBlockBehaviorClass("PaintingAttachable", typeof(BlockBehaviorPaintingAttachable));
-
         }
     }
 }
-
-
