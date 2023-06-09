@@ -46,9 +46,10 @@
             <HintPath>$(VINTAGE_STORY)\Lib\protobuf-net.dll</HintPath>
             <Private>false</Private>
         </Reference>
-    <Reference Include="OpenTK, Version=3.3.2.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(VINTAGE_STORY)\Lib\OpenTK.dll</HintPath>
+     <Reference Include="OpenTK, Version=3.3.2.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+        <SpecificVersion>False</SpecificVersion>
+        <HintPath>$(VINTAGE_STORY)\Lib\OpenTK.dll</HintPath>
+        <Private>false</Private>
     </Reference>
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)' == 'ReleaseToMods'">
