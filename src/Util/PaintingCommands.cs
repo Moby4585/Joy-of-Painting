@@ -1,25 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vintagestory.API.Client;
-using Vintagestory.Client.NoObf;
-using Vintagestory.Client;
-using Vintagestory.API.Config;
-using Vintagestory.API.Common;
-using Vintagestory.API.Server;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Util;
-using Vintagestory.GameContent;
-using Vintagestory.API.Datastructures;
-using System.Drawing;
-using OpenTK.Graphics.OpenGL;
-using System.Drawing.Imaging;
-using OpenTK.Graphics;
-using ProtoBuf;
+﻿using System.Drawing;
 using System.Windows.Forms;
+using Vintagestory.API.Client;
+using Vintagestory.API.Common;
+using Vintagestory.API.Config;
+using Vintagestory.API.Server;
 
 namespace jopainting
 {

@@ -1,26 +1,13 @@
-﻿using System;
-using System.IO;
+﻿using ProtoBuf;
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Drawing;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Forms;
 using Vintagestory.API.Client;
-using Vintagestory.Client.NoObf;
-using Vintagestory.Client;
-using Vintagestory.API.Config;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Util;
-using Vintagestory.GameContent;
-using Vintagestory.API.Datastructures;
-using System.Drawing;
-using OpenTK.Graphics.OpenGL;
-using System.Drawing.Imaging;
-using OpenTK.Graphics;
-using ProtoBuf;
-using System.Windows.Forms;
 
 namespace jopainting
 {
@@ -60,29 +47,14 @@ namespace jopainting
 
         public void SavePainting(IPlayer player, byte[] paintingR, byte[] paintingG, byte[] paintingB, int width, int height, string name)
         {
-            //photographStack = new ItemStack(api.World.GetItem(new AssetLocation("kosphotography", "photograph")));
-
-            /*ItemStack paintingStack = player.InventoryManager.ActiveHotbarSlot.Itemstack;
-
-            paintingStack?.Attributes.SetInt("width", width);
-            paintingStack?.Attributes.SetInt("height", height);
-            paintingStack?.Attributes.SetString("paintingR", Encoding.GetEncoding(28591).GetString(paintingR));
-            paintingStack?.Attributes.SetString("paintingG", Encoding.GetEncoding(28591).GetString(paintingG));
-            paintingStack?.Attributes.SetString("paintingB", Encoding.GetEncoding(28591).GetString(paintingB));*/
-
             if (api is ICoreClientAPI capi)
             {
                 capi.Network.GetChannel("savepainting").SendPacket(new SavePaintingPacket() { PaintingR = paintingR, PaintingG = paintingG, PaintingB = paintingB, Width = width, Height = height, Name = name });
-                //capi.ShowChatMessage("Packet sent");
             }
-            //player.InventoryManager.ActiveHotbarSlot.MarkDirty();
         }
 
         public void OnSavePaintingPacket(IServerPlayer player, SavePaintingPacket packet)
         {
-            //player.SendMessage(0, "Packet received", EnumChatType.Notification);
-            //savePainting(player, packet.PaintingR, packet.PaintingG, packet.PaintingB, packet.Width, packet.Height);
-
             ItemStack paintingStack = player.InventoryManager.ActiveHotbarSlot.Itemstack;
 
             paintingStack?.Attributes.SetInt("width", packet.Width);
@@ -105,10 +77,7 @@ namespace jopainting
                 ".jpeg",
                 ".jpg",
                 ".png",
-                ".tiff",
-                // ".emf",
-                // ".exif",
-                // ".wmf"
+                ".tiff"
             };
 
             foreach (var format in formats)

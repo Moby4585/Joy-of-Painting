@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Vintagestory.API;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
@@ -46,8 +45,6 @@ namespace jopainting
             BlockFacing[] faces = BlockFacing.ALLFACES;
             for (int i = 0; i < faces.Length; i++)
             {
-                //if (faces[i] == BlockFacing.DOWN) continue; - what for? o.O
-
                 if (TryAttachTo(world, byPlayer, blockSel.Position, blockSel.HitPosition, faces[i], itemstack)) return true;
             }
 

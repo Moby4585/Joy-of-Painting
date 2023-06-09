@@ -1,23 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Drawing;
 using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
-using Vintagestory.Client.NoObf;
-using Vintagestory.Client;
-using Vintagestory.API.Config;
 using Vintagestory.API.Common;
-using Vintagestory.API.Server;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Util;
-using Vintagestory.GameContent;
 using Vintagestory.API.Datastructures;
-using System.Drawing;
-using OpenTK.Graphics.OpenGL;
-using System.Drawing.Imaging;
-using OpenTK.Graphics;
+using Vintagestory.API.Util;
 
 namespace jopainting
 {
@@ -41,40 +27,25 @@ namespace jopainting
         public AssetLocation photoBlock = new("jopainting", "paintingrenderer");
         MeshData photoMesh;
 
-        // Attributes
+        #region Attributes
         public string paintingR = "";
         public string paintingG = "";
         public string paintingB = "";
         public int width = 0;
         public int height = 0;
         public string name = "";
-
-        //public ItemStack fromStack = null;
-
-        // Inventory : 0 - liquide, 1 - solide, 2 - lampe
+        #endregion
 
         public override void Initialize(ICoreAPI api)
         {
             base.Initialize(api);
 
-            RegisterGameTickListener(OnGameTick, 5);
-
-            //apparatusComposition = GetApparatusComposition();
             paintingModSys = api.ModLoader.GetModSystem<ModSystemPainting>();
 
             photoBlock = new AssetLocation((Block.Attributes?["paintingshape"]?.AsString("jopainting:paintingrenderer") ?? "jopainting:paintingrenderer") + "-" + Block.LastCodePart());
 
             GenPhoto();
-            //((BlockPainting)this.Block).be = this;
-            //((BlockPainting)this.Block).setValues();
             MarkDirty(true);
-        }
-
-        public override void OnBlockBroken(IPlayer byPlayer = null)
-        {
-            //Api.World.SpawnItemEntity(fromStack, this.Pos.ToVec3d());
-
-            base.OnBlockBroken(byPlayer);
         }
 
         public BlockEntityPainting()
@@ -82,23 +53,10 @@ namespace jopainting
             bitmap = new PaintingBitmap();
         }
 
-        public void OnGameTick(float dt)
-        {
-        }
-
-        public bool OnInteract(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, bool onlyOilLamp = false)
-        {
-            MarkDirty(true);
-
-            return false;
-        }
-
         public override void OnBlockPlaced(ItemStack byItemStack)
         {
             if (byItemStack == null)
             {
-                //base.OnBlockPlaced(byItemStack);
-
                 MarkDirty(true);
 
                 return;
@@ -106,9 +64,6 @@ namespace jopainting
 
             if (byItemStack.Attributes.GetInt("height", 0) == 0)
             {
-                //fromStack = byItemStack.Clone();
-                //fromStack.StackSize = 1;
-
                 base.OnBlockPlaced(byItemStack);
 
                 GenPhoto();
@@ -123,10 +78,6 @@ namespace jopainting
             height = byItemStack.Attributes.GetInt("height", 0);
             name = byItemStack.Attributes.GetString("paintingname", "");
 
-
-            //fromStack = byItemStack.Clone();
-            //fromStack.StackSize = 1;
-
             base.OnBlockPlaced(byItemStack);
 
             GenPhoto();
@@ -134,18 +85,15 @@ namespace jopainting
 
         public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
         {
-
-            //reactingRecipe = JsonUtil.FromString<RetortRecipe>(tree.GetString("reactingRecipe", ""));
             if (wasJustPlaced)
             {
                 tree.SetString("paintingR", paintingR);
                 tree.SetString("paintingG", paintingG);
-                tree.SetString("paintingB", paintingB); ;
+                tree.SetString("paintingB", paintingB);
                 tree.SetInt("width", width);
                 tree.SetInt("height", height);
                 tree.SetString("paintingname", name);
 
-                //tree.SetItemstack("fromstack", fromStack);
                 wasJustPlaced = false;
             }
 
@@ -157,29 +105,17 @@ namespace jopainting
             name = tree.GetString("paintingname", "");
 
             GenPhoto();
-            //fromStack = tree.GetItemstack("fromstack", null);
-
-            //((BlockPainting)this.Block).be = this;
-            //((BlockPainting)this.Block).setValues();
-
             base.FromTreeAttributes(tree, worldAccessForResolve);
         }
 
         public override void ToTreeAttributes(ITreeAttribute tree)
         {
-            //tree.SetString("reactingRecipe", JsonUtil.ToString(reactingRecipe));
             tree.SetString("paintingR", paintingR);
             tree.SetString("paintingG", paintingG);
-            tree.SetString("paintingB", paintingB); ;
+            tree.SetString("paintingB", paintingB);
             tree.SetInt("width", width);
             tree.SetInt("height", height);
             tree.SetString("paintingname", name);
-
-            //tree.SetItemstack("fromstack", fromStack);
-
-            //((BlockPainting)this.Block).be = this;
-            //((BlockPainting)this.Block).setValues();
-
             base.ToTreeAttributes(tree);
         }
 
@@ -196,11 +132,6 @@ namespace jopainting
             Bitmap bmpG = BitmapUtil.GrayscaleBitmapFromPixels(Encoding.GetEncoding(28591).GetBytes(paintingG), width, height);
             Bitmap bmpB = BitmapUtil.GrayscaleBitmapFromPixels(Encoding.GetEncoding(28591).GetBytes(paintingB), width, height);
 
-            //var graphics = Graphics.FromImage(bmp);
-            //graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            //graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
-
-            //bmp = new Bitmap(bmp, new Size(bmp.Width / (bmp.Height / (int)Math.Pow(2, JoPaintingConfig.Current.PhotographLod)), (int)Math.Pow(2, JoPaintingConfig.Current.PhotographLod)));
             bmpR = new Bitmap(bmpR, new Size(32, 32));
             bmpG = new Bitmap(bmpG, new Size(32, 32));
             bmpB = new Bitmap(bmpB, new Size(32, 32));

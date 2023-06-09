@@ -1,18 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vintagestory.API.Client;
-using Vintagestory.API.Server;
-using Vintagestory.API.Config;
-using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Util;
-using Vintagestory.GameContent;
-using Vintagestory.API.Datastructures;
 using System.Drawing;
+using Vintagestory.API.Common;
+using Vintagestory.API.Util;
 
 namespace jopainting
 {
@@ -71,7 +61,6 @@ namespace jopainting
                 for (int x = 0; x < width; x++)
                 {
                     pixels.Add(GetPixel(x, y).ToArgb());
-                    //pixels.Add(bitmapGrayscale.GetPixel(x, y).ToArgb());
                 }
             }
             return pixels.ToArray();
@@ -98,11 +87,9 @@ namespace jopainting
                 {
                     for (int x = 0; x < height; x++)
                     {
-                        //pixelsByte.Add((byte)(Math.Max (bmp.GetPixel(x + deadshift, y).B * (byte)2, 1)));
                         pixelsByteR.Add((byte)(bmpR.GetPixel(x + deadshift, y).R / (byte)2));
                         pixelsByteG.Add((byte)(bmpG.GetPixel(x + deadshift, y).R / (byte)2));
                         pixelsByteB.Add((byte)(bmpB.GetPixel(x + deadshift, y).R / (byte)2));
-                        // Math.Min prevents the 0x00 value, which will be interpreted as End of String (bandaid-fix for how the byte[] item attribute doesn't works)
                     }
                 }
             }
@@ -137,11 +124,9 @@ namespace jopainting
                 {
                     for (int x = 0; x < height; x++)
                     {
-                        //pixelsByte.Add((byte)(Math.Max (bmp.GetPixel(x + deadshift, y).B * (byte)2, 1)));
                         pixelsByteR.Add((byte)(bmp.GetPixel(x + deadshift, y).R / (byte)2));
                         pixelsByteG.Add((byte)(bmp.GetPixel(x + deadshift, y).G / (byte)2));
                         pixelsByteB.Add((byte)(bmp.GetPixel(x + deadshift, y).B / (byte)2));
-                        // Math.Min prevents the 0x00 value, which will be interpreted as End of String (bandaid-fix for how the byte[] item attribute doesn't works)
                     }
                 }
             }

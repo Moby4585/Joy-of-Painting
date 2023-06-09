@@ -1,26 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
-using Vintagestory.API.Config;
 using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
-using Vintagestory.API.Datastructures;
-using System.Drawing;
 
 namespace jopainting
 {
     public class BlockPainting : BlockContainer, IContainedMeshSource
     {
-        //public override bool AllowHeldLiquidTransfer => true;
-
-        //public AssetLocation bubbleSound = new AssetLocation("game", "effect/bubbling");
-
         Dictionary<int, MeshRef> meshrefs = new();
 
         protected virtual string MeshRefsCacheKey => Code.ToShortString() + "meshRefs";
@@ -58,7 +48,7 @@ namespace jopainting
             ItemStack pickedItemstack =  base.OnPickBlock(world, pos);
             if (pickedItemstack == null) return pickedItemstack;
             pickedItemstack = new ItemStack(world.GetBlock(pickedItemstack.Collectible.Code));
-            //return bep.fromStack;
+
             if (world.BlockAccessor.GetBlockEntity(pos) is BlockEntityPainting bep)
             {
                 pickedItemstack.Attributes.SetInt("width", bep.width);
@@ -73,8 +63,6 @@ namespace jopainting
 
         public override void OnBeforeRender(ICoreClientAPI capi, ItemStack itemstack, EnumItemRenderTarget target, ref ItemRenderInfo renderinfo)
         {
-            //Dictionary<int, MeshRef> meshrefs;
-
             if (capi.ObjectCache.TryGetValue(MeshRefsCacheKey, out object obj))
             {
                 meshrefs = obj as Dictionary<int, MeshRef>;
@@ -92,18 +80,6 @@ namespace jopainting
                 renderinfo.ModelRef = meshrefs[num] = value;
                 itemstack.Attributes.SetInt("meshRefId", num);
             }
-
-            /*int meshrefid = itemstack.TempAttributes.GetInt("meshRefId");
-            if (meshrefid == 0 || !meshrefs.TryGetValue(meshrefid, out renderinfo.ModelRef))
-            {
-                int id = meshrefs.Count + 1;
-                var modelref = capi.Render.UploadMesh(GenMesh(capi, itemstack));
-                renderinfo.ModelRef = meshrefs[id] = modelref;
-
-                itemstack.TempAttributes.SetInt("meshRefId", id);
-            }*/
-
-            //base.OnBeforeRender(capi, itemstack, target, ref renderinfo);
         }
 
         MeshData origcontainermesh;
@@ -137,11 +113,6 @@ namespace jopainting
 
             PaintingBitmap bitmap = new();
 
-            //var graphics = Graphics.FromImage(bmp);
-            //graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            //graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
-
-            //bmp = new Bitmap(bmp, new Size(bmp.Width / (bmp.Height / (int)Math.Pow(2, JoPaintingConfig.Current.PhotographLod)), (int)Math.Pow(2, JoPaintingConfig.Current.PhotographLod)));
             bmpR = new Bitmap(bmpR, new Size(32, 32));
             bmpG = new Bitmap(bmpG, new Size(32, 32));
             bmpB = new Bitmap(bmpB, new Size(32, 32));
@@ -172,17 +143,6 @@ namespace jopainting
             return containerMesh;
         }
 
-        /*public override string GetPlacedBlockInfo(IWorldAccessor world, BlockPos pos, IPlayer forPlayer)
-        {
-            BlockEntityPainting be = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityPainting;
-            if (be == null) return base.GetPlacedBlockInfo(world, pos, forPlayer);
-            if (be.name == null || be.name == "") return base.GetPlacedBlockInfo(world, pos, forPlayer);
-            return base.GetPlacedBlockInfo(world, pos, forPlayer) + be.name;
-
-            
-            //setValues();
-        }*/
-
         public override string GetHeldItemName(ItemStack itemStack)
         {
             string paintingname = itemStack.Attributes.GetString("paintingname", "");
@@ -203,13 +163,5 @@ namespace jopainting
             string B = itemstack?.Attributes?.GetString("paintingB");
             return s + R + G + B;
         }
-
-        /*
-
-        public override string GetPlacedBlockName(IWorldAccessor world, BlockPos pos)
-        {
-            return "Painting";
-            return base.GetPlacedBlockName(world, pos);
-        }*/
     }
 }
