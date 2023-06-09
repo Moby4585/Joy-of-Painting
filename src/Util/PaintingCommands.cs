@@ -29,11 +29,6 @@ namespace jopainting
 
         public enum ImageType { File, Url, Clipboard }
 
-        public override bool ShouldLoad(EnumAppSide side)
-        {
-            return side == EnumAppSide.Client;
-        }
-
         public override void StartClientSide(ICoreClientAPI api)
         {
             base.StartClientSide(api);
@@ -53,6 +48,18 @@ namespace jopainting
             .BeginSubCommand("cb")
                 .HandleWith(x => LoadPainting(x, ImageType.Clipboard))
             .EndSubCommand();
+        }
+
+        public override void StartServerSide(ICoreServerAPI api)
+        {
+            base.StartServerSide(api);
+
+            var parsers = api.ChatCommands.Parsers;
+            api.ChatCommands.Create("renameimg")
+                .WithDescription(Lang.Get("jopainting:Description.RenameHeld"))
+                .RequiresPrivilege(Privilege.chat)
+                .WithArgs(parsers.All("name"))
+                .HandleWith(RenamePainting);
         }
 
         public TextCommandResult LoadPainting(TextCommandCallingArgs args, ImageType type)
@@ -100,6 +107,25 @@ namespace jopainting
             paintingModSys.SavePainting(args.Caller.Player, bitmap.pixelsRed, bitmap.pixelsGreen, bitmap.pixelsBlue, bitmap.Width, bitmap.Height, "placeholder");
 
             return TextCommandResult.Success(Lang.Get("jopainting:Success.RequestLoad", "placeholder"));
+        }
+
+        public TextCommandResult RenamePainting(TextCommandCallingArgs args)
+        {
+            var activeSlot = args?.Caller?.Player?.InventoryManager?.ActiveHotbarSlot;
+
+            if (activeSlot.Empty)
+            {
+                return TextCommandResult.Error("jopainting:Error.NotHoldingRequired");
+            }
+            if (!activeSlot.Itemstack.ItemAttributes.IsTrue("isPainting"))
+            {
+                return TextCommandResult.Error(Lang.Get("jopainting:Error.NotHoldingRequired"));
+            }
+
+            activeSlot.Itemstack.Attributes.SetString("paintingname", args[0].ToString());
+            activeSlot.MarkDirty();
+
+            return TextCommandResult.Success(Lang.Get("jopainting:Success.Renamed", "placeholder"));
         }
     }
 }

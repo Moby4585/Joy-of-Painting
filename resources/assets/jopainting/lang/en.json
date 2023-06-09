@@ -7,6 +7,8 @@
     "Description.File.PasteImage": "Paste image from file with file name",
     "Description.Url.PasteImage": "Paste image from internet with url",
     "Description.LoadImage": "Load image onto held painting with various ways",
+    "Description.RenameHeld": "Rename held painting",
     "Success.RequestLoad": "Requested loading \"{0}\"",
+    "Success.Renamed": "Renamed to \"{0}\"",
     "Error.NotHoldingRequired": "Error: you have to be holding a painting (from Joy of Painting, not vanilla) to use this command"
 }
