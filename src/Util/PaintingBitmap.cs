@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Vintagestory.API.Common;
@@ -66,10 +66,13 @@ namespace jopainting
             return pixels.ToArray();
         }
 
-        public void SetBitmapRGB(Bitmap bmpR, Bitmap bmpG, Bitmap bmpB)
+        public void SetBitmapRGB(Bitmap bmpR, Bitmap bmpG, Bitmap bmpB) => SetBitmapCore(bmpR, bmpG, bmpB);
+        public void SetBitmap(Bitmap bmp) => SetBitmapCore(bmp, bmp, bmp);
+
+        private void SetBitmapCore(Bitmap bmpR, Bitmap bmpG, Bitmap bmpB)
         {
-            width = bmpR.Width;
-            height = bmpR.Height;
+            int width = bmpR.Width;
+            int height = bmpR.Height;
 
             int edge = Math.Min(width, height);
             int longEdge = Math.Max(width, height);
@@ -83,61 +86,34 @@ namespace jopainting
             if (isHeightEdge)
             {
                 width = height;
-                for (int y = 0; y < height; y++)
-                {
-                    for (int x = 0; x < height; x++)
-                    {
-                        pixelsByteR.Add((byte)(bmpR.GetPixel(x + deadshift, y).R / (byte)2));
-                        pixelsByteG.Add((byte)(bmpG.GetPixel(x + deadshift, y).R / (byte)2));
-                        pixelsByteB.Add((byte)(bmpB.GetPixel(x + deadshift, y).R / (byte)2));
-                    }
-                }
+                AddPixelsToByteLists(bmpR, bmpG, bmpB, pixelsByteR, pixelsByteG, pixelsByteB, deadshift, width, height);
             }
 
             pixelsRed = pixelsByteR.ToArray();
             pixelsGreen = pixelsByteG.ToArray();
             pixelsBlue = pixelsByteB.ToArray();
 
-            bitmapRed = BitmapUtil.GrayscaleBitmapFromPixels(pixelsRed, width, height);
-            bitmapGreen = BitmapUtil.GrayscaleBitmapFromPixels(pixelsGreen, width, height);
-            bitmapBlue = BitmapUtil.GrayscaleBitmapFromPixels(pixelsBlue, width, height);
+            bitmapRed = CreateGrayscaleBitmap(pixelsRed, width, height);
+            bitmapGreen = CreateGrayscaleBitmap(pixelsGreen, width, height);
+            bitmapBlue = CreateGrayscaleBitmap(pixelsBlue, width, height);
         }
 
-        public void SetBitmap(Bitmap bmp)
+        private void AddPixelsToByteLists(Bitmap bmpR, Bitmap bmpG, Bitmap bmpB, List<byte> pixelsByteR, List<byte> pixelsByteG, List<byte> pixelsByteB, int deadshift, int width, int height)
         {
-            width = bmp.Width;
-            height = bmp.Height;
-
-            int edge = Math.Min(width, height);
-            int longEdge = Math.Max(width, height);
-            bool isHeightEdge = height <= width;
-            int deadshift = (longEdge - edge) / 2;
-
-            List<byte> pixelsByteR = new();
-            List<byte> pixelsByteG = new();
-            List<byte> pixelsByteB = new();
-
-            if (isHeightEdge)
+            for (int y = 0; y < height; y++)
             {
-                width = height;
-                for (int y = 0; y < height; y++)
+                for (int x = 0; x < height; x++)
                 {
-                    for (int x = 0; x < height; x++)
-                    {
-                        pixelsByteR.Add((byte)(bmp.GetPixel(x + deadshift, y).R / (byte)2));
-                        pixelsByteG.Add((byte)(bmp.GetPixel(x + deadshift, y).G / (byte)2));
-                        pixelsByteB.Add((byte)(bmp.GetPixel(x + deadshift, y).B / (byte)2));
-                    }
+                    pixelsByteR.Add((byte)(bmpR.GetPixel(x + deadshift, y).R / 2));
+                    pixelsByteG.Add((byte)(bmpG.GetPixel(x + deadshift, y).G / 2));
+                    pixelsByteB.Add((byte)(bmpB.GetPixel(x + deadshift, y).B / 2));
                 }
             }
+        }
 
-            pixelsRed = pixelsByteR.ToArray();
-            pixelsGreen = pixelsByteG.ToArray();
-            pixelsBlue = pixelsByteB.ToArray();
-
-            bitmapRed = BitmapUtil.GrayscaleBitmapFromPixels(pixelsRed, width, height);
-            bitmapGreen = BitmapUtil.GrayscaleBitmapFromPixels(pixelsGreen, width, height);
-            bitmapBlue = BitmapUtil.GrayscaleBitmapFromPixels(pixelsBlue, width, height);
+        private Bitmap CreateGrayscaleBitmap(byte[] pixels, int width, int height)
+        {
+            return BitmapUtil.GrayscaleBitmapFromPixels(pixels, width, height);
         }
     }
 }
