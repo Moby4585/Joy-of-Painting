@@ -11,5 +11,5 @@
     "Description.RenameHeld": "Rename held painting",
     "Success.RequestLoad": "Requested loading \"{0}\"",
     "Success.Renamed": "Renamed to \"{0}\"",
-    "Error.NotHoldingRequired": "Error: you have to be holding a painting (from Joy of Painting, not vanilla) to use this command"
+    "Error.NotHeldRequired": "Error: you have to be holding a painting (from Joy of Painting, not vanilla) to use this command"
 }

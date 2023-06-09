@@ -48,17 +48,14 @@ namespace jopainting
 
         public TextCommandResult LoadPainting(TextCommandCallingArgs args, ImageType type)
         {
-            if (args.Caller.Player.InventoryManager.ActiveHotbarSlot.Empty)
+            var activeSlot = args.Caller.Player.InventoryManager.ActiveHotbarSlot;
+
+            if (activeSlot.Empty || !activeSlot.Itemstack.ItemAttributes.IsTrue("isPainting"))
             {
-                return TextCommandResult.Error("jopainting:Error.NotHoldingRequired");
-            }
-            if (!args.Caller.Player.InventoryManager.ActiveHotbarSlot.Itemstack.ItemAttributes.IsTrue("isPainting"))
-            {
-                return TextCommandResult.Error(Lang.Get("jopainting:Error.NotHoldingRequired"));
+                return TextCommandResult.Error(Lang.Get("jopainting:Error.NotHeldRequired"));
             }
 
             PaintingBitmap bitmap = new();
-
             Bitmap bmp = null;
 
             switch (type)
@@ -66,28 +63,38 @@ namespace jopainting
                 case ImageType.File:
                     {
                         bmp = ModSystemPainting.LoadBmpFromFile(args[0].ToString());
-                        if (bmp?.Width == 1) return TextCommandResult.Error(Lang.Get("jopainting:Error.Clipboard.FileNotFound", args[0].ToString()));
+                        if (bmp?.Width == 1)
+                        {
+                            return TextCommandResult.Error(Lang.Get("jopainting:Error.Clipboard.FileNotFound", args[0].ToString()));
+                        }
+
                         break;
                     }
                 case ImageType.Url:
                     {
                         bmp = ModSystemPainting.LoadBmpFromUrl(args[0].ToString());
-                        if (bmp?.Width == 1) return TextCommandResult.Error(Lang.Get("jopainting:Error.Clipboard.UrlNotFound"));
+                        if (bmp?.Width == 1)
+                        {
+                            return TextCommandResult.Error(Lang.Get("jopainting:Error.Clipboard.UrlNotFound"));
+                        }
+
                         break;
                     }
                 case ImageType.Clipboard:
                     {
                         if (!Clipboard.ContainsImage()) return TextCommandResult.Error(Lang.Get("jopainting:Error.Clipboard.NoImage"));
                         bmp = ModSystemPainting.LoadBmpFromClipboard();
-                        if (bmp?.Width == 1) return TextCommandResult.Error(Lang.Get("jopainting:Error.Clipboard.NoImage"));
+                        if (bmp?.Width == 1)
+                        {
+                            return TextCommandResult.Error(Lang.Get("jopainting:Error.Clipboard.NoImage"));
+                        }
+
                         break;
                     }
             }
 
             bmp = new Bitmap(bmp, new Size(32, 32));
-
             bitmap.SetBitmap(bmp);
-
             paintingModSys.SavePainting(args.Caller.Player, bitmap.pixelsRed, bitmap.pixelsGreen, bitmap.pixelsBlue, bitmap.Width, bitmap.Height, "");
 
             return TextCommandResult.Success(Lang.Get("jopainting:Success.RequestLoad", ""));
@@ -95,13 +102,9 @@ namespace jopainting
 
         public TextCommandResult RenamePainting(TextCommandCallingArgs args)
         {
-            var activeSlot = args?.Caller?.Player?.InventoryManager?.ActiveHotbarSlot;
+            var activeSlot = args.Caller.Player.InventoryManager.ActiveHotbarSlot;
 
-            if (activeSlot.Empty)
-            {
-                return TextCommandResult.Error("jopainting:Error.NotHoldingRequired");
-            }
-            if (!activeSlot.Itemstack.ItemAttributes.IsTrue("isPainting"))
+            if (activeSlot.Empty || !activeSlot.Itemstack.ItemAttributes.IsTrue("isPainting"))
             {
                 return TextCommandResult.Error(Lang.Get("jopainting:Error.NotHoldingRequired"));
             }
