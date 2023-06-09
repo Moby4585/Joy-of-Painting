@@ -88,9 +88,9 @@ namespace jopainting
 
             bitmap.SetBitmap(bmp);
 
-            paintingModSys.SavePainting(args.Caller.Player, bitmap.pixelsRed, bitmap.pixelsGreen, bitmap.pixelsBlue, bitmap.Width, bitmap.Height, "placeholder");
+            paintingModSys.SavePainting(args.Caller.Player, bitmap.pixelsRed, bitmap.pixelsGreen, bitmap.pixelsBlue, bitmap.Width, bitmap.Height, "");
 
-            return TextCommandResult.Success(Lang.Get("jopainting:Success.RequestLoad", "placeholder"));
+            return TextCommandResult.Success(Lang.Get("jopainting:Success.RequestLoad", ""));
         }
 
         public TextCommandResult RenamePainting(TextCommandCallingArgs args)
@@ -109,7 +109,7 @@ namespace jopainting
             activeSlot.Itemstack.Attributes.SetString("paintingname", args[0].ToString());
             activeSlot.MarkDirty();
 
-            return TextCommandResult.Success(Lang.Get("jopainting:Success.Renamed", "placeholder"));
+            return TextCommandResult.Success(Lang.Get("jopainting:Success.Renamed", args[0].ToString()));
         }
     }
 }

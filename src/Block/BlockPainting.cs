@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
@@ -45,7 +46,7 @@ namespace jopainting
 
         public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos)
         {
-            ItemStack pickedItemstack =  base.OnPickBlock(world, pos);
+            ItemStack pickedItemstack = base.OnPickBlock(world, pos);
             if (pickedItemstack == null) return pickedItemstack;
             pickedItemstack = new ItemStack(world.GetBlock(pickedItemstack.Collectible.Code));
 
@@ -145,9 +146,11 @@ namespace jopainting
 
         public override string GetHeldItemName(ItemStack itemStack)
         {
+            string plain = Lang.GetMatching("jopainting:block-painting-*");
             string paintingname = itemStack.Attributes.GetString("paintingname", "");
-            if (paintingname != "") return base.GetHeldItemName(itemStack) + " (" + paintingname + ")";
-            return base.GetHeldItemName(itemStack);
+            return string.IsNullOrEmpty(paintingname)
+                ? Lang.GetMatching(plain)
+                : Lang.Get("jopainting:Painting", plain, paintingname);
         }
 
         public MeshData GenMesh(ItemStack itemstack, ITextureAtlasAPI targetAtlas, BlockPos atBlockPos)

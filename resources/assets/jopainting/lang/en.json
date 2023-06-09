@@ -1,5 +1,6 @@
 {
     "block-painting-*": "Painting",
+    "Painting": "{0} ({1})",
     "Error.Clipboard.NoImageFound": "Error: File \"{0}\" not found in VintagestoryData/Paintings folder",
     "Error.Clipboard.NoUrlFound": "Error: Url not found",
     "Error.Clipboard.NoClipboardImageFound": "Error: Clipboard \"{0}\" doesn't have image",
