@@ -80,28 +80,12 @@
     "all": "false"
   },
   "lightAbsorption": 0,
-  "guiTransform": {
-    "translation": {
-      "x": -8,
-      "y": -1,
-      "z": 5
+    "guiTransform": {
+        "rotate": false,
+        "rotation": { "x": -22.6, "y": -120, "z": 0 },
+        "origin": { "x": 1, "y": 0.5, "z": 0.5 },
+        "scaleXyz": { "x": -1.39, "y": 1.39, "z": 1.39 }
     },
-    "rotation": {
-      "x": 3,
-      "y": -63,
-      "z": 0
-    },
-    "origin": {
-      "x": 0.5,
-      "y": 0.5,
-      "z": 0
-    },
-    "scaleXyz": {
-      "x": -1.39,
-      "y": 1.39,
-      "z": 1.39
-    }
-  },
   "groundTransform": {
     "translation": {
       "x": 0,
