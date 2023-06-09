@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Vintagestory.API.Common;
@@ -45,7 +45,7 @@ namespace jopainting
 
         public Color GetPixelRel(float x, float y)
         {
-            return GetPixel((int)((float)width * x), (int)((float)height * x));
+            return GetPixel((int)((float)width * x), (int)((float)height * y));
         }
 
         public int[] GetPixelsTransformed(int rot = 0, int alpha = 100)
