@@ -84,13 +84,13 @@ namespace jopainting
                 capi.ObjectCache[MeshRefsCacheKey] = meshrefs = new Dictionary<int, MeshRef>();
             }
 
-            var meshrefid = itemstack.TempAttributes.GetInt("meshRefId");
+            var meshrefid = itemstack.Attributes.GetInt("meshRefId");
             if (meshrefid == 0 || !meshrefs.TryGetValue(meshrefid, out renderinfo.ModelRef))
             {
                 var num = meshrefs.Count + 1;
                 var value = capi.Render.UploadMesh(GenMesh(itemstack, capi.BlockTextureAtlas, null));
                 renderinfo.ModelRef = meshrefs[num] = value;
-                itemstack.TempAttributes.SetInt("meshRefId", num);
+                itemstack.Attributes.SetInt("meshRefId", num);
             }
 
             /*int meshrefid = itemstack.TempAttributes.GetInt("meshRefId");
@@ -198,7 +198,10 @@ namespace jopainting
         public string GetMeshCacheKey(ItemStack itemstack)
         {
             string s = MeshRefsCacheKey;
-            return s;
+            string R = itemstack?.Attributes?.GetString("paintingR");
+            string G = itemstack?.Attributes?.GetString("paintingG");
+            string B = itemstack?.Attributes?.GetString("paintingB");
+            return s + R + G + B;
         }
 
         /*
