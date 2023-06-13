@@ -1,18 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vintagestory.API.Client;
-using Vintagestory.API.Server;
-using Vintagestory.API.Config;
-using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Util;
-using Vintagestory.GameContent;
-using Vintagestory.API.Datastructures;
 using System.Drawing;
+using Vintagestory.API.Common;
+using Vintagestory.API.Util;
 
 namespace jopainting
 {
@@ -40,26 +30,22 @@ namespace jopainting
             bitmapRed = new Bitmap(width, height);
             bitmapGreen = new Bitmap(width, height);
             bitmapBlue = new Bitmap(width, height);
-            
+
             pixelsRed = new byte[width * height];
             pixelsGreen = new byte[width * height];
             pixelsBlue = new byte[width * height];
-
-
         }
 
         public Color GetPixel(int x, int y)
         {
-            
             return Color.FromArgb(bitmapRed.GetPixel(Math.Min(x, bitmapRed.Width - 1), Math.Min(y, bitmapRed.Height - 1)).R * (byte)2,
                 bitmapGreen.GetPixel(Math.Min(x, bitmapGreen.Width - 1), Math.Min(y, bitmapGreen.Height - 1)).G * (byte)2,
                 bitmapBlue.GetPixel(Math.Min(x, bitmapBlue.Width - 1), Math.Min(y, bitmapBlue.Height - 1)).B * (byte)2);
-
         }
 
         public Color GetPixelRel(float x, float y)
         {
-            return GetPixel((int)((float)width * x), (int)((float)height * x));
+            return GetPixel((int)((float)width * x), (int)((float)height * y));
         }
 
         public int[] GetPixelsTransformed(int rot = 0, int alpha = 100)
@@ -69,94 +55,65 @@ namespace jopainting
 
         int[] GetBitmapAsInts()
         {
-            List<int> pixels = new List<int>();
+            List<int> pixels = new();
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
                     pixels.Add(GetPixel(x, y).ToArgb());
-                    //pixels.Add(bitmapGrayscale.GetPixel(x, y).ToArgb());
                 }
             }
             return pixels.ToArray();
         }
 
-        public void setBitmapRGB(Bitmap bmpR, Bitmap bmpG, Bitmap bmpB)
+        public void SetBitmapRGB(Bitmap bmpR, Bitmap bmpG, Bitmap bmpB) => SetBitmapCore(bmpR, bmpG, bmpB);
+        public void SetBitmap(Bitmap bmp) => SetBitmapCore(bmp, bmp, bmp);
+
+        private void SetBitmapCore(Bitmap bmpR, Bitmap bmpG, Bitmap bmpB)
         {
-            width = bmpR.Width;
-            height = bmpR.Height;
+            int width = bmpR.Width;
+            int height = bmpR.Height;
 
             int edge = Math.Min(width, height);
             int longEdge = Math.Max(width, height);
             bool isHeightEdge = height <= width;
             int deadshift = (longEdge - edge) / 2;
 
-            List<byte> pixelsByteR = new List<byte>();
-            List<byte> pixelsByteG = new List<byte>();
-            List<byte> pixelsByteB = new List<byte>();
+            List<byte> pixelsByteR = new();
+            List<byte> pixelsByteG = new();
+            List<byte> pixelsByteB = new();
 
             if (isHeightEdge)
             {
                 width = height;
-                for (int y = 0; y < height; y++)
-                {
-                    for (int x = 0; x < height; x++)
-                    {
-                        //pixelsByte.Add((byte)(Math.Max (bmp.GetPixel(x + deadshift, y).B * (byte)2, 1)));
-                        pixelsByteR.Add((byte)(bmpR.GetPixel(x + deadshift, y).R / (byte)2));
-                        pixelsByteG.Add((byte)(bmpG.GetPixel(x + deadshift, y).R / (byte)2));
-                        pixelsByteB.Add((byte)(bmpB.GetPixel(x + deadshift, y).R / (byte)2));
-                        // Math.Min prevents the 0x00 value, which will be interpreted as End of String (bandaid-fix for how the byte[] item attribute doesn't works)
-                    }
-                }
+                AddPixelsToByteLists(bmpR, bmpG, bmpB, pixelsByteR, pixelsByteG, pixelsByteB, deadshift, width, height);
             }
 
             pixelsRed = pixelsByteR.ToArray();
             pixelsGreen = pixelsByteG.ToArray();
             pixelsBlue = pixelsByteB.ToArray();
 
-            bitmapRed = BitmapUtil.GrayscaleBitmapFromPixels(pixelsRed, width, height);
-            bitmapGreen = BitmapUtil.GrayscaleBitmapFromPixels(pixelsGreen, width, height);
-            bitmapBlue = BitmapUtil.GrayscaleBitmapFromPixels(pixelsBlue, width, height);
+            bitmapRed = CreateGrayscaleBitmap(pixelsRed, width, height);
+            bitmapGreen = CreateGrayscaleBitmap(pixelsGreen, width, height);
+            bitmapBlue = CreateGrayscaleBitmap(pixelsBlue, width, height);
         }
 
-        public void setBitmap(Bitmap bmp)
+        private void AddPixelsToByteLists(Bitmap bmpR, Bitmap bmpG, Bitmap bmpB, List<byte> pixelsByteR, List<byte> pixelsByteG, List<byte> pixelsByteB, int deadshift, int width, int height)
         {
-            width = bmp.Width;
-            height = bmp.Height;
-
-            int edge = Math.Min(width, height);
-            int longEdge = Math.Max(width, height);
-            bool isHeightEdge = height <= width;
-            int deadshift = (longEdge - edge) / 2;
-
-            List<byte> pixelsByteR = new List<byte>();
-            List<byte> pixelsByteG = new List<byte>();
-            List<byte> pixelsByteB = new List<byte>();
-
-            if (isHeightEdge)
+            for (int y = 0; y < height; y++)
             {
-                width = height;
-                for (int y = 0; y < height; y++)
+                for (int x = 0; x < height; x++)
                 {
-                    for (int x = 0; x < height; x++)
-                    {
-                        //pixelsByte.Add((byte)(Math.Max (bmp.GetPixel(x + deadshift, y).B * (byte)2, 1)));
-                        pixelsByteR.Add((byte)(bmp.GetPixel(x + deadshift, y).R / (byte)2));
-                        pixelsByteG.Add((byte)(bmp.GetPixel(x + deadshift, y).G / (byte)2));
-                        pixelsByteB.Add((byte)(bmp.GetPixel(x + deadshift, y).B / (byte)2));
-                        // Math.Min prevents the 0x00 value, which will be interpreted as End of String (bandaid-fix for how the byte[] item attribute doesn't works)
-                    }
+                    pixelsByteR.Add((byte)(bmpR.GetPixel(x + deadshift, y).R / 2));
+                    pixelsByteG.Add((byte)(bmpG.GetPixel(x + deadshift, y).G / 2));
+                    pixelsByteB.Add((byte)(bmpB.GetPixel(x + deadshift, y).B / 2));
                 }
             }
+        }
 
-            pixelsRed = pixelsByteR.ToArray();
-            pixelsGreen = pixelsByteG.ToArray();
-            pixelsBlue = pixelsByteB.ToArray();
-
-            bitmapRed = BitmapUtil.GrayscaleBitmapFromPixels(pixelsRed, width, height);
-            bitmapGreen = BitmapUtil.GrayscaleBitmapFromPixels(pixelsGreen, width, height);
-            bitmapBlue = BitmapUtil.GrayscaleBitmapFromPixels(pixelsBlue, width, height);
+        private Bitmap CreateGrayscaleBitmap(byte[] pixels, int width, int height)
+        {
+            return BitmapUtil.GrayscaleBitmapFromPixels(pixels, width, height);
         }
     }
 }

@@ -1,29 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
-using Vintagestory.API.Config;
 using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
+using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
-using Vintagestory.API.Datastructures;
-using System.Drawing;
 
 namespace jopainting
 {
     public class BlockPainting : BlockContainer, IContainedMeshSource
     {
-        //public override bool AllowHeldLiquidTransfer => true;
+        Dictionary<int, MeshRef> meshrefs = new();
 
-        //public AssetLocation bubbleSound = new AssetLocation("game", "effect/bubbling");
-
-        Dictionary<int, MeshRef> meshrefs = new Dictionary<int, MeshRef>();
-
-        protected virtual string meshRefsCacheKey => Code.ToShortString() + "meshRefs";
+        protected virtual string MeshRefsCacheKey => Code.ToShortString() + "meshRefs";
         static ModSystemPainting paintingModSys;
 
         public int CurrentMeshRefid => GetHashCode();
@@ -32,9 +23,7 @@ namespace jopainting
         {
             ItemStack[] droppedItemstack = base.GetDrops(world, pos, byPlayer, dropChanceMultiplier);
             if (droppedItemstack == null) return droppedItemstack;
-            BlockEntityPainting bep = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityPainting;
-
-            if (bep == null) return droppedItemstack;
+            if (world.BlockAccessor.GetBlockEntity(pos) is not BlockEntityPainting bep) return droppedItemstack;
 
             foreach (ItemStack stack in droppedItemstack)
             {
@@ -57,12 +46,11 @@ namespace jopainting
 
         public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos)
         {
-            ItemStack pickedItemstack =  base.OnPickBlock(world, pos);
+            ItemStack pickedItemstack = base.OnPickBlock(world, pos);
             if (pickedItemstack == null) return pickedItemstack;
             pickedItemstack = new ItemStack(world.GetBlock(pickedItemstack.Collectible.Code));
-            BlockEntityPainting bep = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityPainting;
-            //return bep.fromStack;
-            if (bep != null)
+
+            if (world.BlockAccessor.GetBlockEntity(pos) is BlockEntityPainting bep)
             {
                 pickedItemstack.Attributes.SetInt("width", bep.width);
                 pickedItemstack.Attributes.SetInt("height", bep.height);
@@ -76,38 +64,23 @@ namespace jopainting
 
         public override void OnBeforeRender(ICoreClientAPI capi, ItemStack itemstack, EnumItemRenderTarget target, ref ItemRenderInfo renderinfo)
         {
-            //Dictionary<int, MeshRef> meshrefs;
-
-            object obj;
-            if (capi.ObjectCache.TryGetValue(meshRefsCacheKey, out obj))
+            if (capi.ObjectCache.TryGetValue(MeshRefsCacheKey, out object obj))
             {
                 meshrefs = obj as Dictionary<int, MeshRef>;
             }
             else
             {
-                capi.ObjectCache[meshRefsCacheKey] = meshrefs = new Dictionary<int, MeshRef>();
+                capi.ObjectCache[MeshRefsCacheKey] = meshrefs = new Dictionary<int, MeshRef>();
             }
 
-            var meshrefid = itemstack.TempAttributes.GetInt("meshRefId");
+            var meshrefid = itemstack.Attributes.GetInt("meshRefId");
             if (meshrefid == 0 || !meshrefs.TryGetValue(meshrefid, out renderinfo.ModelRef))
             {
                 var num = meshrefs.Count + 1;
                 var value = capi.Render.UploadMesh(GenMesh(itemstack, capi.BlockTextureAtlas, null));
                 renderinfo.ModelRef = meshrefs[num] = value;
-                itemstack.TempAttributes.SetInt("meshRefId", num);
+                itemstack.Attributes.SetInt("meshRefId", num);
             }
-
-            /*int meshrefid = itemstack.TempAttributes.GetInt("meshRefId");
-            if (meshrefid == 0 || !meshrefs.TryGetValue(meshrefid, out renderinfo.ModelRef))
-            {
-                int id = meshrefs.Count + 1;
-                var modelref = capi.Render.UploadMesh(GenMesh(capi, itemstack));
-                renderinfo.ModelRef = meshrefs[id] = modelref;
-
-                itemstack.TempAttributes.SetInt("meshRefId", id);
-            }*/
-
-            //base.OnBeforeRender(capi, itemstack, target, ref renderinfo);
         }
 
         MeshData origcontainermesh;
@@ -121,7 +94,7 @@ namespace jopainting
 
             MeshData containerMesh = origcontainermesh.Clone();
 
-            AssetLocation photoBlock = new AssetLocation((this.Attributes?["paintingshape"]?.AsString("jopainting:paintingrenderer") ?? "jopainting:paintingrenderer") + "-" + this.LastCodePart());
+            AssetLocation photoBlock = new((this.Attributes?["paintingshape"]?.AsString("jopainting:paintingrenderer") ?? "jopainting:paintingrenderer") + "-" + this.LastCodePart());
 
             Block block = capi.World.GetBlock(photoBlock);
             if (block == null) return containerMesh;
@@ -133,25 +106,19 @@ namespace jopainting
             int width = itemstack.Attributes.GetInt("width", 0);
             int height = itemstack.Attributes.GetInt("height", 0);
 
-            if (paintingR == "" || paintingG == "" || paintingB == "") return containerMesh;
-
+            if (paintingR?.Length == 0 || paintingG?.Length == 0 || paintingB?.Length == 0) return containerMesh;
 
             Bitmap bmpR = BitmapUtil.GrayscaleBitmapFromPixels(Encoding.GetEncoding(28591).GetBytes(paintingR), width, height);
             Bitmap bmpG = BitmapUtil.GrayscaleBitmapFromPixels(Encoding.GetEncoding(28591).GetBytes(paintingG), width, height);
             Bitmap bmpB = BitmapUtil.GrayscaleBitmapFromPixels(Encoding.GetEncoding(28591).GetBytes(paintingB), width, height);
 
-            PaintingBitmap bitmap = new PaintingBitmap();
+            PaintingBitmap bitmap = new();
 
-            //var graphics = Graphics.FromImage(bmp);
-            //graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            //graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
-
-            //bmp = new Bitmap(bmp, new Size(bmp.Width / (bmp.Height / (int)Math.Pow(2, JoPaintingConfig.Current.PhotographLod)), (int)Math.Pow(2, JoPaintingConfig.Current.PhotographLod)));
             bmpR = new Bitmap(bmpR, new Size(32, 32));
             bmpG = new Bitmap(bmpG, new Size(32, 32));
             bmpB = new Bitmap(bmpB, new Size(32, 32));
 
-            bitmap.setBitmapRGB(bmpR, bmpG, bmpB);
+            bitmap.SetBitmapRGB(bmpR, bmpG, bmpB);
 
             TextureAtlasPosition atlasPosition = paintingModSys.GetAtlasPosition(bitmap, capi, paintingR + paintingG + paintingB);
 
@@ -177,22 +144,13 @@ namespace jopainting
             return containerMesh;
         }
 
-        /*public override string GetPlacedBlockInfo(IWorldAccessor world, BlockPos pos, IPlayer forPlayer)
-        {
-            BlockEntityPainting be = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityPainting;
-            if (be == null) return base.GetPlacedBlockInfo(world, pos, forPlayer);
-            if (be.name == null || be.name == "") return base.GetPlacedBlockInfo(world, pos, forPlayer);
-            return base.GetPlacedBlockInfo(world, pos, forPlayer) + be.name;
-
-            
-            //setValues();
-        }*/
-
         public override string GetHeldItemName(ItemStack itemStack)
         {
+            string plain = Lang.GetMatching("jopainting:block-painting-*");
             string paintingname = itemStack.Attributes.GetString("paintingname", "");
-            if (paintingname != "") return base.GetHeldItemName(itemStack) + " (" + paintingname + ")";
-            return base.GetHeldItemName(itemStack);
+            return string.IsNullOrEmpty(paintingname)
+                ? Lang.GetMatching(plain)
+                : Lang.Get("jopainting:Painting", plain, paintingname);
         }
 
         public MeshData GenMesh(ItemStack itemstack, ITextureAtlasAPI targetAtlas, BlockPos atBlockPos)
@@ -202,16 +160,11 @@ namespace jopainting
 
         public string GetMeshCacheKey(ItemStack itemstack)
         {
-            string s = meshRefsCacheKey;
-            return s;
+            string s = MeshRefsCacheKey;
+            string R = itemstack?.Attributes?.GetString("paintingR");
+            string G = itemstack?.Attributes?.GetString("paintingG");
+            string B = itemstack?.Attributes?.GetString("paintingB");
+            return s + R + G + B;
         }
-
-        /*
-
-        public override string GetPlacedBlockName(IWorldAccessor world, BlockPos pos)
-        {
-            return "Painting";
-            return base.GetPlacedBlockName(world, pos);
-        }*/
     }
 }

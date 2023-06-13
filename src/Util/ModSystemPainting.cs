@@ -1,25 +1,13 @@
-﻿using System;
-using System.IO;
+﻿using ProtoBuf;
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Drawing;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Forms;
 using Vintagestory.API.Client;
-using Vintagestory.Client.NoObf;
-using Vintagestory.Client;
-using Vintagestory.API.Config;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Util;
-using Vintagestory.GameContent;
-using Vintagestory.API.Datastructures;
-using System.Drawing;
-using OpenTK.Graphics.OpenGL;
-using System.Drawing.Imaging;
-using OpenTK.Graphics;
-using ProtoBuf;
 
 namespace jopainting
 {
@@ -27,7 +15,7 @@ namespace jopainting
     {
         public static ICoreAPI api;
 
-        public Dictionary<string, TextureAtlasPosition> atlasPositions = new Dictionary<string, TextureAtlasPosition>();
+        public Dictionary<string, TextureAtlasPosition> atlasPositions = new();
 
         public override double ExecuteOrder()
         {
@@ -41,19 +29,11 @@ namespace jopainting
             api.Network.RegisterChannel("savepainting").RegisterMessageType<SavePaintingPacket>();
         }
 
-        public override void StartClientSide(ICoreClientAPI api)
-        {
-            base.StartClientSide(api);
-        }
-
         public TextureAtlasPosition GetAtlasPosition(PaintingBitmap painting, ICoreClientAPI capi, string picture)
         {
             if (atlasPositions.ContainsKey(picture)) return atlasPositions[picture];
 
-            TextureAtlasPosition atlasPosition;
-            int texSubId;
-
-            capi.BlockTextureAtlas.InsertTexture(painting, out texSubId, out atlasPosition);
+            capi.BlockTextureAtlas.InsertTexture(painting, out int texSubId, out TextureAtlasPosition atlasPosition);
 
             atlasPositions.Add(picture, atlasPosition);
 
@@ -62,34 +42,19 @@ namespace jopainting
 
         public override void StartServerSide(ICoreServerAPI api)
         {
-            api.Network.GetChannel("savepainting").SetMessageHandler<SavePaintingPacket>(onSavePaintingPacket);
+            api.Network.GetChannel("savepainting").SetMessageHandler<SavePaintingPacket>(OnSavePaintingPacket);
         }
 
-        public void savePainting(IPlayer player, byte[] paintingR, byte[] paintingG, byte[] paintingB, int width, int height, string name)
+        public void SavePainting(IPlayer player, byte[] paintingR, byte[] paintingG, byte[] paintingB, int width, int height, string name)
         {
-            //photographStack = new ItemStack(api.World.GetItem(new AssetLocation("kosphotography", "photograph")));
-
-            /*ItemStack paintingStack = player.InventoryManager.ActiveHotbarSlot.Itemstack;
-
-            paintingStack?.Attributes.SetInt("width", width);
-            paintingStack?.Attributes.SetInt("height", height);
-            paintingStack?.Attributes.SetString("paintingR", Encoding.GetEncoding(28591).GetString(paintingR));
-            paintingStack?.Attributes.SetString("paintingG", Encoding.GetEncoding(28591).GetString(paintingG));
-            paintingStack?.Attributes.SetString("paintingB", Encoding.GetEncoding(28591).GetString(paintingB));*/
-
             if (api is ICoreClientAPI capi)
             {
                 capi.Network.GetChannel("savepainting").SendPacket(new SavePaintingPacket() { PaintingR = paintingR, PaintingG = paintingG, PaintingB = paintingB, Width = width, Height = height, Name = name });
-                //capi.ShowChatMessage("Packet sent");
             }
-            //player.InventoryManager.ActiveHotbarSlot.MarkDirty();
         }
 
-        public void onSavePaintingPacket(IServerPlayer player, SavePaintingPacket packet)
+        public void OnSavePaintingPacket(IServerPlayer player, SavePaintingPacket packet)
         {
-            //player.SendMessage(0, "Packet received", EnumChatType.Notification);
-            //savePainting(player, packet.PaintingR, packet.PaintingG, packet.PaintingB, packet.Width, packet.Height);
-
             ItemStack paintingStack = player.InventoryManager.ActiveHotbarSlot.Itemstack;
 
             paintingStack?.Attributes.SetInt("width", packet.Width);
@@ -102,17 +67,58 @@ namespace jopainting
             player.InventoryManager.ActiveHotbarSlot.MarkDirty();
         }
 
-        public static Bitmap loadBmp(string bitmapName)
+        public static Bitmap LoadBmpFromFile(string fileName)
         {
-            //return (Bitmap)Bitmap.FromFile(api.GetOrCreateDataPath("paintings") + "/moby.bmp");
-            if (File.Exists(api.GetOrCreateDataPath("Paintings") + "/" + bitmapName + ".bmp"))
+            List<string> formats = new()
             {
-                return (Bitmap)Bitmap.FromFile(api.GetOrCreateDataPath("Paintings") + "/" + bitmapName + ".bmp");
-            }
-            else
+                ".bmp",
+                ".gif",
+                ".ico",
+                ".jpeg",
+                ".jpg",
+                ".png",
+                ".tiff"
+            };
+
+            foreach (var format in formats)
             {
-                return new Bitmap(1, 1);
+                if (File.Exists($"{api.GetOrCreateDataPath("Paintings")}/{fileName}" + format))
+                {
+                    return (Bitmap)Image.FromFile($"{api.GetOrCreateDataPath("Paintings")}/{fileName}" + format);
+                }
             }
+            return new(1, 1);
+        }
+
+        public static Bitmap LoadBmpFromUrl(string url)
+        {
+            try
+            {
+                PictureBox picbox = new();
+                picbox.Load(url);
+
+                if (picbox?.Width == 1)
+                {
+                    return new(1, 1);
+                }
+
+                return (Bitmap)picbox.Image;
+            }
+            catch (Exception)
+            {
+                return new(1, 1);
+            }
+        }
+
+        public static Bitmap LoadBmpFromClipboard()
+        {
+            var img = Clipboard.GetImage();
+
+            if (img?.Width == 1)
+            {
+                return new(1, 1);
+            }
+            return (Bitmap)img;
         }
     }
     [ProtoContract]

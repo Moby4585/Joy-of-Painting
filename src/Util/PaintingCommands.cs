@@ -1,24 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
+using System.Windows.Forms;
 using Vintagestory.API.Client;
-using Vintagestory.Client.NoObf;
-using Vintagestory.Client;
-using Vintagestory.API.Config;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Server;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Util;
-using Vintagestory.GameContent;
-using Vintagestory.API.Datastructures;
-using System.Drawing;
-using OpenTK.Graphics.OpenGL;
-using System.Drawing.Imaging;
-using OpenTK.Graphics;
-using ProtoBuf;
 
 namespace jopainting
 {
@@ -26,10 +11,7 @@ namespace jopainting
     {
         ModSystemPainting paintingModSys;
 
-        public override bool ShouldLoad(EnumAppSide side)
-        {
-            return side == EnumAppSide.Client;
-        }
+        public enum ImageType { File, Url, Clipboard }
 
         public override void StartClientSide(ICoreClientAPI api)
         {
@@ -38,35 +20,99 @@ namespace jopainting
             paintingModSys = api.ModLoader.GetModSystem<ModSystemPainting>();
 
             var parsers = api.ChatCommands.Parsers;
-            api.ChatCommands.Create("loadpainting")
-                .WithArgs(parsers.Word("file"))
-                .HandleWith(LoadPainting);
+            api.ChatCommands.Create("loadimg")
+            .BeginSubCommand("file")
+                .WithArgs(parsers.All("file"))
+                .HandleWith(x => LoadPainting(x, ImageType.File))
+            .EndSubCommand()
+            .BeginSubCommand("url")
+                .WithArgs(parsers.All("url"))
+                .HandleWith(x => LoadPainting(x, ImageType.Url))
+            .EndSubCommand()
+            .BeginSubCommand("cb")
+                .HandleWith(x => LoadPainting(x, ImageType.Clipboard))
+            .EndSubCommand();
         }
 
-        public TextCommandResult LoadPainting(TextCommandCallingArgs args)
+        public override void StartServerSide(ICoreServerAPI api)
         {
-            if (args.Caller.Player.InventoryManager.ActiveHotbarSlot.Empty)
+            base.StartServerSide(api);
+
+            var parsers = api.ChatCommands.Parsers;
+            api.ChatCommands.Create("renameimg")
+                .WithDescription(Lang.Get("jopainting:Description.RenameHeld"))
+                .RequiresPrivilege(Privilege.chat)
+                .WithArgs(parsers.All("name"))
+                .HandleWith(RenamePainting);
+        }
+
+        public TextCommandResult LoadPainting(TextCommandCallingArgs args, ImageType type)
+        {
+            var activeSlot = args.Caller.Player.InventoryManager.ActiveHotbarSlot;
+
+            if (activeSlot.Empty || !activeSlot.Itemstack.ItemAttributes.IsTrue("isPainting"))
             {
-                return TextCommandResult.Error("Error: you have to be holding a painting (from Joy of Painting, not vanilla) to use this command");
+                return TextCommandResult.Error(Lang.Get("jopainting:Error.NotHeldRequired"));
             }
-            if (args.Caller.Player.InventoryManager.ActiveHotbarSlot.Itemstack.ItemAttributes.IsTrue("isPainting") != true)
+
+            PaintingBitmap bitmap = new();
+            Bitmap bmp = null;
+
+            switch (type)
             {
-                return TextCommandResult.Error("Error: you have to be holding a painting (from Joy of Painting, not vanilla) to use this command");
+                case ImageType.File:
+                    {
+                        bmp = ModSystemPainting.LoadBmpFromFile(args[0].ToString());
+                        if (bmp?.Width == 1)
+                        {
+                            return TextCommandResult.Error(Lang.Get("jopainting:Error.Clipboard.FileNotFound", args[0].ToString()));
+                        }
+
+                        break;
+                    }
+                case ImageType.Url:
+                    {
+                        bmp = ModSystemPainting.LoadBmpFromUrl(args[0].ToString());
+                        if (bmp?.Width == 1)
+                        {
+                            return TextCommandResult.Error(Lang.Get("jopainting:Error.Clipboard.UrlNotFound"));
+                        }
+
+                        break;
+                    }
+                case ImageType.Clipboard:
+                    {
+                        if (!Clipboard.ContainsImage()) return TextCommandResult.Error(Lang.Get("jopainting:Error.Clipboard.NoImage"));
+                        bmp = ModSystemPainting.LoadBmpFromClipboard();
+                        if (bmp?.Width == 1)
+                        {
+                            return TextCommandResult.Error(Lang.Get("jopainting:Error.Clipboard.NoImage"));
+                        }
+
+                        break;
+                    }
             }
-
-
-            PaintingBitmap bitmap = new PaintingBitmap();
-            Bitmap bmp = ModSystemPainting.loadBmp(args[0].ToString());
-
-            if (bmp.Width == 1) return TextCommandResult.Error("Error: File \"" + args[0].ToString() + ".bmp\" not found in VintagestoryData/Paintings folder");
 
             bmp = new Bitmap(bmp, new Size(32, 32));
+            bitmap.SetBitmap(bmp);
+            paintingModSys.SavePainting(args.Caller.Player, bitmap.pixelsRed, bitmap.pixelsGreen, bitmap.pixelsBlue, bitmap.Width, bitmap.Height, "");
 
-            bitmap.setBitmap(bmp);
+            return TextCommandResult.Success(Lang.Get("jopainting:Success.RequestLoad", ""));
+        }
 
-            paintingModSys.savePainting(args.Caller.Player, bitmap.pixelsRed, bitmap.pixelsGreen, bitmap.pixelsBlue, bitmap.Width, bitmap.Height, args[0].ToString());
+        public TextCommandResult RenamePainting(TextCommandCallingArgs args)
+        {
+            var activeSlot = args.Caller.Player.InventoryManager.ActiveHotbarSlot;
 
-            return TextCommandResult.Success("Requested loading \"" + args[0] + "\"");
+            if (activeSlot.Empty || !activeSlot.Itemstack.ItemAttributes.IsTrue("isPainting"))
+            {
+                return TextCommandResult.Error(Lang.Get("jopainting:Error.NotHoldingRequired"));
+            }
+
+            activeSlot.Itemstack.Attributes.SetString("paintingname", args[0].ToString());
+            activeSlot.MarkDirty();
+
+            return TextCommandResult.Success(Lang.Get("jopainting:Success.Renamed", args[0].ToString()));
         }
     }
 }
