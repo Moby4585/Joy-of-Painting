@@ -29,7 +29,7 @@
     },
     "output": {
       "type": "block",
-      "code": "jopainting:painting-north",
+      "code": "jopainting:painting-west",
       "quantity": 1
     }
   },
